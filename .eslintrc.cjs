@@ -3,7 +3,7 @@ module.exports = {
     browser: true,
     es2021: true
   },
-  ignorePatterns: ['dist/', 'node_modules/', 'src/**.spec.ts'],
+  ignorePatterns: ['dist/', 'node_modules/', 'src/**.spec.ts', 'coverage/'],
   extends: 'standard-with-typescript',
   overrides: [
     {
