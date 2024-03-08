@@ -1,15 +1,15 @@
 {
-  "name": "@ndragun92/packages-npm-tsup",
+  "name": "@ndragun92/file-sys-cache",
   "version": "0.0.0-dev",
-  "description": "Tsup Npm Package Template",
+  "description": "A Node.js package providing efficient caching using the file system for storage.",
   "type": "module",
-  "main": "./dist/packages-npm-tsup.cjs",
-  "module": "./dist/packages-npm-tsup.js",
-  "types": "./dist/packages-npm-tsup.d.ts",
+  "main": "./dist/file-sys-cache.cjs",
+  "module": "./dist/file-sys-cache.js",
+  "types": "./dist/file-sys-cache.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/packages-npm-tsup.js",
-      "require": "./dist/packages-npm-tsup.cjs"
+      "import": "./dist/file-sys-cache.js",
+      "require": "./dist/file-sys-cache.cjs"
     }
   },
   "files": [
@@ -37,17 +37,27 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ndragun92/packages-npm-tsup.git"
+    "url": "git+https://github.com/ndragun92/file-sys-cache.git"
   },
   "keywords": [
-    "packages-npm-tsup"
+    "cache",
+    "caching",
+    "file-cache",
+    "filesystem",
+    "node",
+    "npm",
+    "package",
+    "system",
+    "storage",
+    "performance",
+    "optimization"
   ],
   "author": "Nemanja Dragun",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ndragun92/packages-npm-tsup/issues"
+    "url": "https://github.com/ndragun92/file-sys-cache/issues"
   },
-  "homepage": "https://github.com/ndragun92/packages-npm-tsup#readme",
+  "homepage": "https://github.com/ndragun92/file-sys-cache#readme",
   "publishConfig": {
     "@ndragun92:registry": "https://registry.npmjs.org/",
     "access": "public"
