@@ -18,6 +18,7 @@
   "scripts": {
     "build": "tsup",
     "test": "jest",
+    "test:coverage": "jest --coverage",
     "lint": "eslint --fix --ext .js,.ts .",
     "pack": "npm pack --dry-run"
   },
