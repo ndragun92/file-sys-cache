@@ -33,7 +33,7 @@ const cache = new FileSysCache({
 await cache.set({ fileNamePrefix: 'myPrefix', fileName: 'myFileName', payload: myPayload, ttl: 3600 })
 
 // Retrieve cached data by file name prefix and file name
-const data = await cache.get({fileNamePrefix: 'myPrefix', fileName: 'myFileName'});
+const data = await cache.get({ fileNamePrefix: 'myPrefix', fileName: 'myFileName' });
 
 // Invalidate expired cached data automatically
 
