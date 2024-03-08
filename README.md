@@ -35,8 +35,6 @@ await cache.set({ fileNamePrefix: 'myPrefix', fileName: 'myFileName', payload: m
 // Retrieve cached data by file name prefix and file name
 const data = await cache.get({ fileNamePrefix: 'myPrefix', fileName: 'myFileName' });
 
-// Invalidate expired cached data automatically
-
 // Flush cache by passing regex
 await cache.flushByRegex('myString'); // Flush cache by regex match
 
