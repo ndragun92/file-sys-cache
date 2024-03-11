@@ -50,11 +50,6 @@ export default class FileSysCache {
     }
   }
 
-  private async readFileAndParse (filePath: string): Promise<any> {
-    const fileContent = await fsPromises.readFile(filePath, 'utf-8')
-    return JSON.parse(fileContent)
-  }
-
   async get ({ fileNamePrefix = '', fileName }: IGetArguments): Promise<string> {
     const FILE_NAME = formatFileName({ fileNamePrefix, fileName })
     const filePath = path.resolve(this.basePath, `${FILE_NAME}`)
@@ -69,5 +64,33 @@ export default class FileSysCache {
       }
       throw error
     }
+  }
+
+  async getOrSet ({ fileNamePrefix = '', fileName, payload, ttl = this.defaultTTL }: ISetArguments): Promise<unknown> {
+    try {
+      const CACHED_DATA = await this.get({ fileNamePrefix, fileName })
+      if (this.debug) {
+        console.info('Return: cached')
+      }
+      return CACHED_DATA
+    } catch (_) {
+      try {
+        if (this.debug) {
+          console.info('Return: fresh')
+        }
+        await this.set({ fileNamePrefix, fileName, payload, ttl })
+        return payload
+      } catch (_) {
+        if (this.debug) {
+          console.info('Return: fresh')
+        }
+        return payload
+      }
+    }
+  }
+
+  private async readFileAndParse (filePath: string): Promise<any> {
+    const fileContent = await fsPromises.readFile(filePath, 'utf-8')
+    return JSON.parse(fileContent)
   }
 }

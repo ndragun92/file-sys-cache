@@ -3,12 +3,18 @@ import { rmSync } from 'node:fs'
 
 describe('FileSysCache', () => {
   const basePath = './.unit-file-sys-cache'
-  afterEach(() => {
+
+  afterAll(() => {
     // Delete cache folder after each test
     rmSync(basePath, { recursive: true, force: true })
   })
 
   describe('defaults', () => {
+    afterEach(() => {
+      // Delete cache folder after each test
+      rmSync(basePath, { recursive: true, force: true })
+    })
+
     it('uses default basePath', async () => {
       console.info = jest.fn()
       const cache = new FileSysCache({ debug: true })
@@ -26,6 +32,10 @@ describe('FileSysCache', () => {
   })
 
   describe('ttl', () => {
+    afterEach(() => {
+      // Delete cache folder after each test
+      rmSync(basePath, { recursive: true, force: true })
+    })
     it('overrides defaultTTL', async () => {
       console.info = jest.fn()
       const cache = new FileSysCache({ basePath, defaultTTL: 3600, debug: true })
@@ -42,6 +52,10 @@ describe('FileSysCache', () => {
   })
 
   describe('option debug', () => {
+    afterEach(() => {
+      // Delete cache folder after each test
+      rmSync(basePath, { recursive: true, force: true })
+    })
     it('should create cached file', async () => {
       console.info = jest.fn()
       const cache = new FileSysCache({ basePath, debug: true })
@@ -57,7 +71,11 @@ describe('FileSysCache', () => {
     })
   })
 
-  describe('set method', () => {
+  describe('set', () => {
+    afterEach(() => {
+      // Delete cache folder after each test
+      rmSync(basePath, { recursive: true, force: true })
+    })
     it('should create cached file', async () => {
       const cache = new FileSysCache({ basePath })
       const filePrefix = 'my-prefix'
@@ -78,7 +96,11 @@ describe('FileSysCache', () => {
     })
   })
 
-  describe('get method', () => {
+  describe('get', () => {
+    afterEach(() => {
+      // Delete cache folder after each test
+      rmSync(basePath, { recursive: true, force: true })
+    })
     it('should return cached payload', async () => {
       const cache = new FileSysCache({ basePath })
       const filePrefix = 'my-prefix'
@@ -105,6 +127,45 @@ describe('FileSysCache', () => {
 
       await cache.set({ fileNamePrefix: filePrefix, fileName, payload })
       await expect(cache.get({ fileNamePrefix: filePrefix, fileName: 'wrong-file-name' })).rejects.toThrow('no such file or directory')
+    })
+  })
+
+  describe('getOrSet', () => {
+    it('return fresh data', async () => {
+      console.error = jest.fn()
+      console.info = jest.fn()
+      const cache = new FileSysCache({ basePath, defaultTTL: 3600, debug: true })
+      const filePrefix = 'my-prefix'
+      const fileName = 'my-file-name'
+      const payload = { message: 'Hello, world!' }
+
+      const freshData = await cache.getOrSet({ fileNamePrefix: filePrefix, fileName, payload })
+
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
+      expect(console.error.mock.calls[0][0]).toContain('Error during file retrieval:')
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
+      expect(console.info.mock.calls[0][0]).toContain('Return: fresh')
+      expect(freshData).toEqual(payload)
+    })
+    it('return cached data', async () => {
+      console.error = jest.fn()
+      console.info = jest.fn()
+      const cache = new FileSysCache({ basePath, defaultTTL: 3600, debug: true })
+      const filePrefix = 'my-prefix'
+      const fileName = 'my-file-name'
+      const payload = { message: 'Hello, world!' }
+
+      const cachedData = await cache.getOrSet({ fileNamePrefix: filePrefix, fileName, payload })
+
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
+      expect(console.error.mock.calls).toHaveLength(0)
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
+      expect(console.info.mock.calls[0][0]).toContain('Return: cached')
+      expect(cachedData).toEqual(payload)
     })
   })
 })

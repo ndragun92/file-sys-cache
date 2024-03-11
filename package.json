@@ -1,5 +1,5 @@
 {
-  "name": "@ndragun92/file-sys-cache",
+  "name": "file-sys-cache",
   "version": "0.0.0-dev",
   "description": "A Node.js package providing efficient caching using the file system for storage.",
   "type": "module",
