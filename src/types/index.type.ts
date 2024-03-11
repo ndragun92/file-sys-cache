@@ -7,8 +7,8 @@ export interface IOptions {
 }
 
 export interface IArguments {
-  fileNamePrefix?: string
-  fileName: string
+  fileName?: string
+  key: string
 }
 
 export interface ISetArguments extends IArguments {

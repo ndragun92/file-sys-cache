@@ -2,15 +2,15 @@ import FileSysCache from './file-sys-cache'
 import { rmSync, existsSync, readdirSync } from 'node:fs'
 
 describe('FileSysCache', () => {
-  const filePrefix = 'my-prefix'
   const fileName = 'my-file-name'
+  const key = 'my-unique-key'
   const payload = { message: 'Hello, world!' }
 
   describe('defaults', () => {
     it('uses default basePath', async () => {
       console.info = jest.fn()
       const cache = new FileSysCache({ debug: true })
-      await cache.set({ fileNamePrefix: filePrefix, fileName, payload })
+      await cache.set({ fileName, key, payload })
 
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-expect-error
@@ -29,7 +29,7 @@ describe('FileSysCache', () => {
       console.info = jest.fn()
       const cache = new FileSysCache({ basePath, defaultTTL: 3600, debug: true })
 
-      await cache.set({ fileNamePrefix: filePrefix, fileName, payload })
+      await cache.set({ fileName, key, payload })
 
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-expect-error
@@ -48,11 +48,11 @@ describe('FileSysCache', () => {
         console.info = jest.fn()
         const cache = new FileSysCache({ basePath, debug: true })
 
-        await cache.set({ fileNamePrefix: filePrefix, fileName, payload })
+        await cache.set({ fileName, key, payload })
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error
-        expect(console.info.mock.calls[0][0]).toContain(`Data stored successfully to ${basePath}/${filePrefix} hash_`)
+        expect(console.info.mock.calls[0][0]).toContain(`Data stored successfully to ${basePath}/${fileName} hash_`)
       })
     })
     describe('autoInvalidate', () => {
@@ -62,8 +62,9 @@ describe('FileSysCache', () => {
         rmSync(basePath, { recursive: true, force: true })
       })
       it('should auto invalidate file after 25 tries', async () => {
-        const cache = new FileSysCache({ basePath, defaultTTL: 1, autoInvalidate: true })
-        await cache.getOrSet({ fileNamePrefix: 'my-custom-prefix', fileName, payload })
+        const cache = new FileSysCache({ basePath, autoInvalidate: true })
+        await cache.getOrSet({ fileName, key, payload })
+        await cache.getOrSet({ fileName: 'random-file-name-1', key: 'random-key-1', payload, ttl: 1 })
         await new Promise(resolve => setTimeout(resolve, 1250))
         let filesCount
         try {
@@ -74,10 +75,11 @@ describe('FileSysCache', () => {
         } catch (_) {
           filesCount = 0
         }
-        expect(filesCount).toBe(1)
+        expect(filesCount).toBe(2)
         await new Promise(resolve => setTimeout(resolve, 1250))
-        for (let i = 0; i < 24; i++) {
-          await cache.getOrSet({ fileNamePrefix: filePrefix, fileName, payload })
+        // Since we already made 2 calls, we have to check if it will invalidate after next 23 calls
+        for (let i = 0; i < 23; i++) {
+          await cache.getOrSet({ fileName, key, payload })
         }
         await new Promise(resolve => setTimeout(resolve, 1250))
         try {
@@ -102,15 +104,15 @@ describe('FileSysCache', () => {
     it('should create cached file', async () => {
       const cache = new FileSysCache({ basePath })
 
-      const result = await cache.set({ fileNamePrefix: filePrefix, fileName, payload })
+      const result = await cache.set({ fileName, key, payload })
 
-      expect(result).toContain(filePrefix)
+      expect(result).toContain(fileName)
     })
     it('should throw an error if folder path is wrong', async () => {
       console.error = jest.fn()
       const cache = new FileSysCache({ basePath: '?', debug: true })
 
-      await expect(cache.set({ fileNamePrefix: filePrefix, fileName, payload })).rejects.toThrow('no such file or directory')
+      await expect(cache.set({ fileName, key, payload })).rejects.toThrow('no such file or directory')
     })
   })
 
@@ -123,21 +125,21 @@ describe('FileSysCache', () => {
     it('should return cached payload', async () => {
       const cache = new FileSysCache({ basePath })
 
-      await cache.set({ fileNamePrefix: filePrefix, fileName, payload })
-      const result = await cache.get({ fileNamePrefix: filePrefix, fileName })
+      await cache.set({ fileName, key, payload })
+      const result = await cache.get({ fileName, key })
 
       expect(result).toEqual(payload)
     })
     it('should throw an error if directory does not exist', async () => {
       const cache = new FileSysCache({ basePath })
-      await expect(cache.get({ fileNamePrefix: filePrefix, fileName })).rejects.toThrow('no such file or directory')
+      await expect(cache.get({ fileName, key })).rejects.toThrow('no such file or directory')
     })
     it('should throw an error if file does not exist in directory', async () => {
       console.error = jest.fn()
       const cache = new FileSysCache({ basePath, debug: true })
 
-      await cache.set({ fileNamePrefix: filePrefix, fileName, payload })
-      await expect(cache.get({ fileNamePrefix: filePrefix, fileName: 'wrong-file-name' })).rejects.toThrow('no such file or directory')
+      await cache.set({ fileName, key, payload })
+      await expect(cache.get({ fileName, key: 'wrong-file-name' })).rejects.toThrow('no such file or directory')
     })
   })
 
@@ -152,7 +154,7 @@ describe('FileSysCache', () => {
       console.info = jest.fn()
       const cache = new FileSysCache({ basePath, defaultTTL: 3600, debug: true })
 
-      const freshData = await cache.getOrSet({ fileNamePrefix: filePrefix, fileName, payload })
+      const freshData = await cache.getOrSet({ fileName, key, payload })
 
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-expect-error
@@ -167,7 +169,7 @@ describe('FileSysCache', () => {
       console.info = jest.fn()
       const cache = new FileSysCache({ basePath, defaultTTL: 3600, debug: true })
 
-      const cachedData = await cache.getOrSet({ fileNamePrefix: filePrefix, fileName, payload })
+      const cachedData = await cache.getOrSet({ fileName, key, payload })
 
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-expect-error
@@ -188,7 +190,7 @@ describe('FileSysCache', () => {
     it('invalidate files', async () => {
       const cache = new FileSysCache({ basePath, defaultTTL: 1 })
 
-      await cache.getOrSet({ fileNamePrefix: filePrefix, fileName, payload })
+      await cache.getOrSet({ fileName, key, payload })
       await new Promise(resolve => setTimeout(resolve, 2000))
       let filesCount
       try {
@@ -231,11 +233,11 @@ describe('FileSysCache', () => {
     it('flush files', async () => {
       const cache = new FileSysCache({ basePath })
 
-      await cache.set({ fileNamePrefix: 'org_google id_123', fileName: 'file-1', payload })
-      await cache.set({ fileNamePrefix: 'org_google id_345', fileName: 'file-2', payload })
-      await cache.set({ fileNamePrefix: 'org_google id_678', fileName: 'file-3', payload })
-      await cache.set({ fileNamePrefix: 'org_amazon id_123', fileName: 'file-4', payload })
-      await cache.set({ fileNamePrefix: 'org_amazon id_456', fileName: 'file-5', payload })
+      await cache.set({ fileName: 'org_google id_123', key: 'file-1', payload })
+      await cache.set({ fileName: 'org_google id_345', key: 'file-2', payload })
+      await cache.set({ fileName: 'org_google id_678', key: 'file-3', payload })
+      await cache.set({ fileName: 'org_amazon id_123', key: 'file-4', payload })
+      await cache.set({ fileName: 'org_amazon id_456', key: 'file-5', payload })
       await cache.flushByRegex('google', '678')
       let filesCount
       try {
@@ -265,7 +267,7 @@ describe('FileSysCache', () => {
     it('deletes a folder', async () => {
       const cache = new FileSysCache({ basePath })
 
-      await cache.set({ fileNamePrefix: filePrefix, fileName, payload })
+      await cache.set({ fileName, key, payload })
       expect(existsSync(basePath)).toBeTruthy()
       cache.flushAll()
       expect(existsSync(basePath)).toBeFalsy()

@@ -25,9 +25,9 @@ export default class FileSysCache {
     this.enableMonitoring = enableMonitoring || false
   }
 
-  async set ({ fileNamePrefix = '', fileName, payload, ttl = this.defaultTTL }: ISetArguments): Promise<string> {
+  async set ({ fileName = '', key, payload, ttl = this.defaultTTL }: ISetArguments): Promise<string> {
     const FILE_TTL = ttl
-    const FILE_NAME = formatFileName({ fileNamePrefix, fileName })
+    const FILE_NAME = formatFileName({ fileName, key })
     try {
       // Construct the cache folder path
       const cacheFolderPath = path.resolve(this.basePath)
@@ -68,7 +68,7 @@ export default class FileSysCache {
     }
   }
 
-  async get ({ fileNamePrefix = '', fileName }: IGetArguments): Promise<string> {
+  async get ({ fileName = '', key }: IGetArguments): Promise<string> {
     if (this.autoInvalidate) {
       autoInvalidate.count++
       if (autoInvalidate.count >= autoInvalidate.after) {
@@ -77,7 +77,7 @@ export default class FileSysCache {
       }
     }
 
-    const FILE_NAME = formatFileName({ fileNamePrefix, fileName })
+    const FILE_NAME = formatFileName({ fileName, key })
 
     try {
       // Construct the file path within the cache folder
@@ -105,12 +105,12 @@ export default class FileSysCache {
     }
   }
 
-  async getOrSet ({ fileNamePrefix = '', fileName, payload, ttl = this.defaultTTL }: ISetArguments): Promise<unknown> {
+  async getOrSet ({ fileName = '', key, payload, ttl = this.defaultTTL }: ISetArguments): Promise<unknown> {
     if (this.enableMonitoring) {
       monitoring.count.success.getOrSet++
     }
     try {
-      const CACHED_DATA = await this.get({ fileNamePrefix, fileName })
+      const CACHED_DATA = await this.get({ fileName, key })
       if (this.debug) {
         console.info('Return: cached')
       }
@@ -120,7 +120,7 @@ export default class FileSysCache {
         if (this.debug) {
           console.info('Return: fresh')
         }
-        await this.set({ fileNamePrefix, fileName, payload, ttl })
+        await this.set({ fileName, key, payload, ttl })
         return payload
       } catch (_) {
         if (this.debug) {
@@ -153,10 +153,10 @@ export default class FileSysCache {
     }
   }
 
-  private async validateFile (fileName: IArguments['fileName']): Promise<{ ttl: number, expiresIn: number | null } | undefined> {
+  private async validateFile (key: IArguments['key']): Promise<{ ttl: number, expiresIn: number | null } | undefined> {
     try {
       // Construct the file path within the cache folder
-      const filePath = path.resolve(this.basePath, `${fileName}`)
+      const filePath = path.resolve(this.basePath, `${key}`)
 
       // Check if the file exists
       await fsPromises.stat(filePath)
