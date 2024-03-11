@@ -1,11 +1,16 @@
 import path from 'node:path'
-import { promises as fsPromises, readdirSync, rmSync, unlinkSync } from 'node:fs'
+import { promises as fsPromises, readdirSync, rmSync, unlinkSync, statSync } from 'node:fs'
 import { type IArguments, type IGetArguments, type IOptions, type ISetArguments } from '../types/index.type.ts'
 import { formatFileName } from '../utils/format.util.ts'
 import FileSysCacheMonitoring, { monitoring } from './file-sys-cache-monitoring.ts'
 
 const autoInvalidate = {
   after: 25,
+  count: 0
+}
+
+const autoLog = {
+  after: 50,
   count: 0
 }
 
@@ -54,6 +59,7 @@ export default class FileSysCache {
 
       if (this.enableMonitoring) {
         monitoring.count.success.set++
+        this.setLogs()
       }
 
       return filePath
@@ -72,13 +78,12 @@ export default class FileSysCache {
     if (this.autoInvalidate) {
       autoInvalidate.count++
       if (autoInvalidate.count >= autoInvalidate.after) {
-        this.invalidate()
+        this.invalidate().catch(() => {})
         autoInvalidate.count = 0
       }
     }
 
     const FILE_NAME = formatFileName({ fileName, key })
-
     try {
       // Construct the file path within the cache folder
       const filePath = path.resolve(this.basePath, `${FILE_NAME}`)
@@ -91,6 +96,7 @@ export default class FileSysCache {
 
       if (this.enableMonitoring) {
         monitoring.count.success.get++
+        this.setLogs()
       }
 
       return data.payload
@@ -183,7 +189,6 @@ export default class FileSysCache {
       if (this.enableMonitoring) {
         monitoring.count.error.validateFile++
       }
-      // throw err
     }
   }
 
@@ -221,6 +226,28 @@ export default class FileSysCache {
       this.monitoringInstance = new FileSysCacheMonitoring()
     }
     return this.monitoringInstance
+  }
+
+  private setLogs (): void {
+    autoLog.count++
+    if (autoLog.count >= autoLog.after) {
+      this.log()
+      autoLog.count = 0
+    }
+  }
+
+  private log (): void {
+    let totalSizeInBytes = 0
+    let storedFilesCount = 0
+    try {
+      const files = readdirSync(this.basePath)
+      for (const file of files) {
+        storedFilesCount++
+        const stats = statSync(`${this.basePath}/${file}`)
+        totalSizeInBytes += stats.size
+      }
+    } catch (_) {}
+    this.monitoring?.set({ sizeInBytes: totalSizeInBytes, storedFilesCount })
   }
 
   private async readFileAndParse (filePath: string): Promise<any> {

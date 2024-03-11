@@ -17,7 +17,7 @@ interface ILogs {
   id: number
   bytes: number
   megabytes: number
-  sizeTotal: number
+  storedFilesCount: number
   date: Date
   count: ICount
 }
@@ -53,11 +53,16 @@ export default class FileSysCacheMonitoring {
     return monitoring
   }
 
-  set (logs: Omit<ILogs, 'count' | 'id' | 'date'>): void {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  set ({ sizeInBytes, storedFilesCount }: { sizeInBytes: number, storedFilesCount: number }): void {
+    // After 500 stored logs delete logs
+    if (monitoring.logs.length >= 500) {
+      monitoring.logs = []
+    }
     monitoring.logs.push({
       id: new Date().getTime(),
-      ...Object(logs),
+      bytes: sizeInBytes,
+      megabytes: sizeInBytes / (1024 * 1024),
+      storedFilesCount,
       date: new Date(),
       count: JSON.parse(JSON.stringify(monitoring.count))
     })
