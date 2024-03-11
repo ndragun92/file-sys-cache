@@ -2,6 +2,7 @@ import path from 'node:path'
 import { promises as fsPromises, readdirSync, rmSync, unlinkSync } from 'node:fs'
 import { type IArguments, type IGetArguments, type IOptions, type ISetArguments } from '../types/index.type.ts'
 import { formatFileName } from '../utils/format.util.ts'
+import FileSysCacheMonitoring, { monitoring } from './file-sys-cache-monitoring.ts'
 
 const autoInvalidate = {
   after: 25,
@@ -13,12 +14,15 @@ export default class FileSysCache {
   defaultTTL: number
   debug: boolean
   autoInvalidate: boolean
+  enableMonitoring: boolean
+  monitoringInstance?: FileSysCacheMonitoring
 
-  constructor ({ basePath, defaultTTL, debug, autoInvalidate }: IOptions) {
+  constructor ({ basePath, defaultTTL, debug, autoInvalidate, enableMonitoring }: IOptions) {
     this.basePath = basePath || './.file-sys-cache'
     this.defaultTTL = defaultTTL || 60 // 60 seconds
     this.debug = debug || false
     this.autoInvalidate = autoInvalidate || false
+    this.enableMonitoring = enableMonitoring || false
   }
 
   async set ({ fileNamePrefix = '', fileName, payload, ttl = this.defaultTTL }: ISetArguments): Promise<string> {
@@ -48,10 +52,17 @@ export default class FileSysCache {
         console.info(`Data stored successfully to ${this.basePath}/${FILE_NAME} | TTL: ${FILE_TTL}`)
       }
 
+      if (this.enableMonitoring) {
+        monitoring.count.success.set++
+      }
+
       return filePath
     } catch (error: any) {
       if (this.debug) {
         console.error('Error setting file:', error)
+      }
+      if (this.enableMonitoring) {
+        monitoring.count.error.set++
       }
       throw error
     }
@@ -78,16 +89,26 @@ export default class FileSysCache {
       // Parse the JSON content
       const data = await this.readFileAndParse(filePath)
 
+      if (this.enableMonitoring) {
+        monitoring.count.success.get++
+      }
+
       return data.payload
     } catch (error: any) {
       if (this.debug) {
         console.error('Error during file retrieval:', error)
+      }
+      if (this.enableMonitoring) {
+        monitoring.count.error.get++
       }
       throw error
     }
   }
 
   async getOrSet ({ fileNamePrefix = '', fileName, payload, ttl = this.defaultTTL }: ISetArguments): Promise<unknown> {
+    if (this.enableMonitoring) {
+      monitoring.count.success.getOrSet++
+    }
     try {
       const CACHED_DATA = await this.get({ fileNamePrefix, fileName })
       if (this.debug) {
@@ -122,7 +143,14 @@ export default class FileSysCache {
           }
         } catch (_) {}
       }
-    } catch (_) {}
+      if (this.enableMonitoring) {
+        monitoring.count.success.invalidate++
+      }
+    } catch (_) {
+      if (this.enableMonitoring) {
+        monitoring.count.error.invalidate++
+      }
+    }
   }
 
   private async validateFile (fileName: IArguments['fileName']): Promise<{ ttl: number, expiresIn: number | null } | undefined> {
@@ -139,6 +167,10 @@ export default class FileSysCache {
       // Calculate remaining time until expiration (in seconds)
       const expiresIn = data.expiration ? Math.max(0, (data.expiration - Date.now()) / 1000) : null
 
+      if (this.enableMonitoring) {
+        monitoring.count.success.validateFile++
+      }
+
       // Return the payload data and TTL
       return {
         ttl: data.ttl,
@@ -147,6 +179,9 @@ export default class FileSysCache {
     } catch (error: any) {
       if (this.debug) {
         console.error('Error validateFile:', error)
+      }
+      if (this.enableMonitoring) {
+        monitoring.count.error.validateFile++
       }
       // throw err
     }
@@ -161,15 +196,31 @@ export default class FileSysCache {
           unlinkSync(`${this.basePath}/${file}`)
         }
       }
+      if (this.enableMonitoring) {
+        monitoring.count.success.flushByRegex++
+      }
     } catch (error: any) {
       if (this.debug) {
         console.error('Error flushByRegex:', error)
+      }
+      if (this.enableMonitoring) {
+        monitoring.count.error.flushByRegex++
       }
     }
   }
 
   flushAll (): void {
     rmSync(this.basePath, { recursive: true, force: true })
+    if (this.enableMonitoring) {
+      monitoring.count.success.flushAll++
+    }
+  }
+
+  get monitoring (): FileSysCacheMonitoring | undefined {
+    if (!this.monitoringInstance && this.enableMonitoring) {
+      this.monitoringInstance = new FileSysCacheMonitoring()
+    }
+    return this.monitoringInstance
   }
 
   private async readFileAndParse (filePath: string): Promise<any> {

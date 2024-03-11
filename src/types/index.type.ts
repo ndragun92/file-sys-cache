@@ -3,6 +3,7 @@ export interface IOptions {
   defaultTTL?: number
   debug?: boolean
   autoInvalidate?: boolean
+  enableMonitoring?: boolean
 }
 
 export interface IArguments {
