@@ -21,7 +21,7 @@ npm install @ndragun92/file-sys-cache
 
 ## Usage
 ```javascript
-import { FileSysCache } from '@ndragun92/file-sys-cache'
+import { FileSysCache } from 'file-sys-cache'
 
 // Create a new cache instance
 const cache = new FileSysCache({
