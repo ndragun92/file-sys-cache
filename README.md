@@ -9,14 +9,14 @@ File-Sys-Cache is an npm package that provides a simple and efficient system fil
 - **Invalidate Cached Data**: Automatically invalidate cached data for items with expired TTLs.
 - **Flush Cache by Regex**: Flush cache entries that match a given regular expression.
 - **Flush Whole Cache**: Clear the entire cache, removing all stored entries.
-- **Storage Logs**: Monitor cache usage and performance statistics, including invalidated files count, logs over time, size over time, and request count.
+- **Monitoring**: Monitor cache usage and performance statistics, including invalidated files count, logs over time, size over time, and request count.
 
 ## Installation
 
 Install File-Sys-Cache via npm:
 
 ```bash
-npm install @ndragun92/file-sys-cache
+npm install file-sys-cache
 ```
 
 ## Usage
