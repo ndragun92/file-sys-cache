@@ -1,6 +1,12 @@
 import path from 'node:path'
 import { promises as fsPromises, readdirSync, rmSync, unlinkSync, statSync } from 'node:fs'
-import { type IArguments, type IGetArguments, type IOptions, type ISetArguments } from '../types/index.type.ts'
+import {
+  type IArguments,
+  type IGetArguments,
+  type IOptions,
+  type ISetArguments,
+  type THashOptions
+} from '../types/index.type.ts'
 import { formatFileName } from '../utils/format.util.ts'
 import FileSysCacheMonitoring, { monitoring } from './file-sys-cache-monitoring.ts'
 
@@ -17,14 +23,16 @@ const autoLog = {
 export default class FileSysCache {
   basePath: string
   defaultTTL: number
+  hash?: THashOptions
   debug: boolean
   autoInvalidate: boolean
   enableMonitoring: boolean
   monitoringInstance?: FileSysCacheMonitoring
 
-  constructor ({ basePath, defaultTTL, debug, autoInvalidate, enableMonitoring }: IOptions) {
+  constructor ({ basePath, defaultTTL, hash, debug, autoInvalidate, enableMonitoring }: IOptions) {
     this.basePath = basePath || './.file-sys-cache'
     this.defaultTTL = defaultTTL || 60 // 60 seconds
+    this.hash = hash || 'sha256'
     this.debug = debug || false
     this.autoInvalidate = autoInvalidate || false
     this.enableMonitoring = enableMonitoring || false
@@ -32,7 +40,7 @@ export default class FileSysCache {
 
   async set ({ fileName = '', key, payload, ttl = this.defaultTTL }: ISetArguments): Promise<string> {
     const FILE_TTL = ttl
-    const FILE_NAME = formatFileName({ fileName, key })
+    const FILE_NAME = formatFileName({ fileName, key, hash: this.hash })
     try {
       // Construct the cache folder path
       const cacheFolderPath = path.resolve(this.basePath)
@@ -83,7 +91,7 @@ export default class FileSysCache {
       }
     }
 
-    const FILE_NAME = formatFileName({ fileName, key })
+    const FILE_NAME = formatFileName({ fileName, key, hash: this.hash })
     try {
       // Construct the file path within the cache folder
       const filePath = path.resolve(this.basePath, `${FILE_NAME}`)
