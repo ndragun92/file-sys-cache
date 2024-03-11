@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { promises as fsPromises, readdirSync, unlinkSync } from 'node:fs'
+import { promises as fsPromises, readdirSync, rmSync, unlinkSync } from 'node:fs'
 import { type IArguments, type IGetArguments, type IOptions, type ISetArguments } from '../types/index.type.ts'
 import { formatFileName } from '../utils/format.util.ts'
 
@@ -142,6 +142,10 @@ export default class FileSysCache {
       }
       // throw err
     }
+  }
+
+  flushAll (): void {
+    rmSync(this.basePath, { recursive: true, force: true })
   }
 
   private async readFileAndParse (filePath: string): Promise<any> {

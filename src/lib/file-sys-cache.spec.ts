@@ -1,27 +1,15 @@
 import FileSysCache from './file-sys-cache'
-import { rmSync } from 'node:fs'
+import { rmSync, existsSync, readdirSync } from 'node:fs'
 
 describe('FileSysCache', () => {
-  const basePath = './.unit-file-sys-cache'
-
-  afterAll(() => {
-    // Delete cache folder after each test
-    rmSync(basePath, { recursive: true, force: true })
-  })
+  const filePrefix = 'my-prefix'
+  const fileName = 'my-file-name'
+  const payload = { message: 'Hello, world!' }
 
   describe('defaults', () => {
-    afterEach(() => {
-      // Delete cache folder after each test
-      rmSync(basePath, { recursive: true, force: true })
-    })
-
     it('uses default basePath', async () => {
       console.info = jest.fn()
       const cache = new FileSysCache({ debug: true })
-      const filePrefix = 'my-prefix'
-      const fileName = 'my-file-name'
-      const payload = { message: 'Hello, world!' }
-
       await cache.set({ fileNamePrefix: filePrefix, fileName, payload })
 
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -32,6 +20,7 @@ describe('FileSysCache', () => {
   })
 
   describe('ttl', () => {
+    const basePath = './.unit-file-sys-cache--ttl'
     afterEach(() => {
       // Delete cache folder after each test
       rmSync(basePath, { recursive: true, force: true })
@@ -39,9 +28,6 @@ describe('FileSysCache', () => {
     it('overrides defaultTTL', async () => {
       console.info = jest.fn()
       const cache = new FileSysCache({ basePath, defaultTTL: 3600, debug: true })
-      const filePrefix = 'my-prefix'
-      const fileName = 'my-file-name'
-      const payload = { message: 'Hello, world!' }
 
       await cache.set({ fileNamePrefix: filePrefix, fileName, payload })
 
@@ -52,6 +38,7 @@ describe('FileSysCache', () => {
   })
 
   describe('option debug', () => {
+    const basePath = './.unit-file-sys-cache--option'
     afterEach(() => {
       // Delete cache folder after each test
       rmSync(basePath, { recursive: true, force: true })
@@ -59,9 +46,6 @@ describe('FileSysCache', () => {
     it('should create cached file', async () => {
       console.info = jest.fn()
       const cache = new FileSysCache({ basePath, debug: true })
-      const filePrefix = 'my-prefix'
-      const fileName = 'my-file-name'
-      const payload = { message: 'Hello, world!' }
 
       await cache.set({ fileNamePrefix: filePrefix, fileName, payload })
 
@@ -72,15 +56,13 @@ describe('FileSysCache', () => {
   })
 
   describe('set', () => {
+    const basePath = './.unit-file-sys-cache--set'
     afterEach(() => {
       // Delete cache folder after each test
       rmSync(basePath, { recursive: true, force: true })
     })
     it('should create cached file', async () => {
       const cache = new FileSysCache({ basePath })
-      const filePrefix = 'my-prefix'
-      const fileName = 'my-file-name'
-      const payload = { message: 'Hello, world!' }
 
       const result = await cache.set({ fileNamePrefix: filePrefix, fileName, payload })
 
@@ -89,23 +71,19 @@ describe('FileSysCache', () => {
     it('should throw an error if folder path is wrong', async () => {
       console.error = jest.fn()
       const cache = new FileSysCache({ basePath: '?', debug: true })
-      const filePrefix = 'my-prefix'
-      const fileName = 'my-file-name'
-      const payload = { message: 'Hello, world!' }
+
       await expect(cache.set({ fileNamePrefix: filePrefix, fileName, payload })).rejects.toThrow('no such file or directory')
     })
   })
 
   describe('get', () => {
+    const basePath = './.unit-file-sys-cache--get'
     afterEach(() => {
       // Delete cache folder after each test
       rmSync(basePath, { recursive: true, force: true })
     })
     it('should return cached payload', async () => {
       const cache = new FileSysCache({ basePath })
-      const filePrefix = 'my-prefix'
-      const fileName = 'my-file-name'
-      const payload = { message: 'Hello, world!' }
 
       await cache.set({ fileNamePrefix: filePrefix, fileName, payload })
       const result = await cache.get({ fileNamePrefix: filePrefix, fileName })
@@ -114,16 +92,11 @@ describe('FileSysCache', () => {
     })
     it('should throw an error if directory does not exist', async () => {
       const cache = new FileSysCache({ basePath })
-      const filePrefix = 'my-prefix'
-      const fileName = 'my-file-name'
       await expect(cache.get({ fileNamePrefix: filePrefix, fileName })).rejects.toThrow('no such file or directory')
     })
     it('should throw an error if file does not exist in directory', async () => {
       console.error = jest.fn()
       const cache = new FileSysCache({ basePath, debug: true })
-      const filePrefix = 'my-prefix'
-      const fileName = 'my-file-name'
-      const payload = { message: 'Hello, world!' }
 
       await cache.set({ fileNamePrefix: filePrefix, fileName, payload })
       await expect(cache.get({ fileNamePrefix: filePrefix, fileName: 'wrong-file-name' })).rejects.toThrow('no such file or directory')
@@ -131,13 +104,15 @@ describe('FileSysCache', () => {
   })
 
   describe('getOrSet', () => {
+    const basePath = './.unit-file-sys-cache--getOrSet'
+    afterAll(() => {
+      // Delete cache folder after each test
+      rmSync(basePath, { recursive: true, force: true })
+    })
     it('return fresh data', async () => {
       console.error = jest.fn()
       console.info = jest.fn()
       const cache = new FileSysCache({ basePath, defaultTTL: 3600, debug: true })
-      const filePrefix = 'my-prefix'
-      const fileName = 'my-file-name'
-      const payload = { message: 'Hello, world!' }
 
       const freshData = await cache.getOrSet({ fileNamePrefix: filePrefix, fileName, payload })
 
@@ -153,9 +128,6 @@ describe('FileSysCache', () => {
       console.error = jest.fn()
       console.info = jest.fn()
       const cache = new FileSysCache({ basePath, defaultTTL: 3600, debug: true })
-      const filePrefix = 'my-prefix'
-      const fileName = 'my-file-name'
-      const payload = { message: 'Hello, world!' }
 
       const cachedData = await cache.getOrSet({ fileNamePrefix: filePrefix, fileName, payload })
 
@@ -166,6 +138,68 @@ describe('FileSysCache', () => {
       // @ts-expect-error
       expect(console.info.mock.calls[0][0]).toContain('Return: cached')
       expect(cachedData).toEqual(payload)
+    })
+  })
+
+  describe('invalidate', () => {
+    const basePath = './.unit-file-sys-cache--invalidate'
+    afterAll(() => {
+      // Delete cache folder after each test
+      rmSync(basePath, { recursive: true, force: true })
+    })
+    it('before invalidate', async () => {
+      const cache = new FileSysCache({ basePath, defaultTTL: 1 })
+
+      await cache.getOrSet({ fileNamePrefix: filePrefix, fileName, payload })
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      let filesCount
+      try {
+        // Read the contents of the folder
+        const files = readdirSync(basePath)
+        // Return the number of files
+        filesCount = files.length
+      } catch (_) {
+        filesCount = 0
+      }
+      expect(filesCount).toBe(1)
+    })
+    it('invalidate', async () => {
+      const cache = new FileSysCache({ basePath })
+      let filesCount
+      try {
+        // Read the contents of the folder
+        const files = readdirSync(basePath)
+        // Return the number of files
+        filesCount = files.length
+      } catch (_) {
+        filesCount = 0
+      }
+      expect(filesCount).toBe(1)
+      await cache.invalidate()
+    })
+    it('after invalidate', async () => {
+      let filesCount
+      try {
+        // Read the contents of the folder
+        const files = readdirSync(basePath)
+        // Return the number of files
+        filesCount = files.length
+      } catch (_) {
+        filesCount = 0
+      }
+      expect(filesCount).toBe(0)
+    })
+  })
+
+  describe('flushAll', () => {
+    const basePath = './.unit-file-sys-cache--flushAll'
+    it('deletes a folder', async () => {
+      const cache = new FileSysCache({ basePath })
+
+      await cache.set({ fileNamePrefix: filePrefix, fileName, payload })
+      expect(existsSync(basePath)).toBeTruthy()
+      cache.flushAll()
+      expect(existsSync(basePath)).toBeFalsy()
     })
   })
 })
