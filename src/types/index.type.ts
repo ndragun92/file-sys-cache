@@ -2,6 +2,7 @@ export interface IOptions {
   basePath?: string
   defaultTTL?: number
   debug?: boolean
+  autoInvalidate?: boolean
 }
 
 export interface IArguments {

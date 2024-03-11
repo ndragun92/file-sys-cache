@@ -1,17 +1,19 @@
 import path from 'node:path'
-import { promises as fsPromises } from 'node:fs'
-import { type IGetArguments, type IOptions, type ISetArguments } from '../types/index.type.ts'
+import { promises as fsPromises, readdirSync, unlinkSync } from 'node:fs'
+import { type IArguments, type IGetArguments, type IOptions, type ISetArguments } from '../types/index.type.ts'
 import { formatFileName } from '../utils/format.util.ts'
 
 export default class FileSysCache {
   basePath: string
   defaultTTL: number
   debug: boolean
+  autoInvalidate: boolean
 
-  constructor ({ basePath, defaultTTL, debug }: IOptions) {
+  constructor ({ basePath, defaultTTL, debug, autoInvalidate }: IOptions) {
     this.basePath = basePath || './.file-sys-cache'
     this.defaultTTL = defaultTTL || 60 // 60 seconds
     this.debug = debug || false
+    this.autoInvalidate = autoInvalidate || false
   }
 
   async set ({ fileNamePrefix = '', fileName, payload, ttl = this.defaultTTL }: ISetArguments): Promise<string> {
@@ -31,7 +33,7 @@ export default class FileSysCache {
       const data = {
         payload: dataToStore,
         ttl: FILE_TTL,
-        expiration: FILE_TTL ? Date.now() + FILE_TTL : null
+        expiration: FILE_TTL ? Date.now() + FILE_TTL * 1000 : null
       }
 
       // Write data to the file
@@ -51,12 +53,22 @@ export default class FileSysCache {
   }
 
   async get ({ fileNamePrefix = '', fileName }: IGetArguments): Promise<string> {
+    if (this.autoInvalidate) {
+      this.invalidate()
+    }
+
     const FILE_NAME = formatFileName({ fileNamePrefix, fileName })
-    const filePath = path.resolve(this.basePath, `${FILE_NAME}`)
 
     try {
+      // Construct the file path within the cache folder
+      const filePath = path.resolve(this.basePath, `${FILE_NAME}`)
+
+      // Check if the file exists
+
       await fsPromises.stat(filePath)
+      // Parse the JSON content
       const data = await this.readFileAndParse(filePath)
+
       return data.payload
     } catch (error: any) {
       if (this.debug) {
@@ -86,6 +98,49 @@ export default class FileSysCache {
         }
         return payload
       }
+    }
+  }
+
+  async invalidate (): Promise<void> {
+    try {
+      const files = readdirSync(this.basePath)
+      for (const file of files) {
+        try {
+          const { expiresIn } = (await this.validateFile(file)) || { ttl: 0, expiresIn: 0 }
+          const invalid = (expiresIn || 0) <= 0
+          if (invalid) {
+            unlinkSync(`${this.basePath}/${file}`)
+          }
+        } catch (_) {}
+      }
+    } catch (_) {}
+  }
+
+  private async validateFile (fileName: IArguments['fileName']): Promise<{ ttl: number, expiresIn: number | null } | undefined> {
+    const FILE_NAME = fileName
+    try {
+      // Construct the file path within the cache folder
+      const filePath = path.resolve(this.basePath, `${FILE_NAME}`)
+
+      // Check if the file exists
+      await fsPromises.stat(filePath)
+
+      // Parse the JSON content
+      const data = await this.readFileAndParse(filePath)
+
+      // Calculate remaining time until expiration (in seconds)
+      const expiresIn = data.expiration ? Math.max(0, (data.expiration - Date.now()) / 1000) : null
+
+      // Return the payload data and TTL
+      return {
+        ttl: data.ttl,
+        expiresIn
+      }
+    } catch (error: any) {
+      if (this.debug) {
+        console.error('Error validateFile:', error)
+      }
+      // throw err
     }
   }
 
