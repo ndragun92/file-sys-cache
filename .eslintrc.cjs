@@ -25,6 +25,7 @@ module.exports = {
   rules: {
     "@typescript-eslint/strict-boolean-expressions": "off",
     "no-useless-catch": "off",
-    "@typescript-eslint/prefer-nullish-coalescing": "off"
+    "@typescript-eslint/prefer-nullish-coalescing": "off",
+    "import/no-named-default": "warn"
   }
 }

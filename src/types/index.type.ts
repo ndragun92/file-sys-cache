@@ -1,6 +1,7 @@
 export interface IOptions {
   basePath?: string
   defaultTTL?: number
+  hash?: THashOptions
   debug?: boolean
   autoInvalidate?: boolean
   enableMonitoring?: boolean
