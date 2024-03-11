@@ -159,6 +159,7 @@ export default class FileSysCache {
       }
       if (this.enableMonitoring) {
         monitoring.count.success.invalidate++
+        this.log()
       }
     } catch (_) {
       if (this.enableMonitoring) {
