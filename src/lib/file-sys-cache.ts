@@ -143,6 +143,22 @@ export default class FileSysCache {
     }
   }
 
+  flushByRegex (...args: string[]): any {
+    try {
+      const files = readdirSync(this.basePath)
+
+      for (const file of files) {
+        if (args.every((string) => file.match(string))) {
+          unlinkSync(`${this.basePath}/${file}`)
+        }
+      }
+    } catch (error: any) {
+      if (this.debug) {
+        console.error('Error flushByRegex:', error)
+      }
+    }
+  }
+
   flushAll (): void {
     rmSync(this.basePath, { recursive: true, force: true })
   }

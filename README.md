@@ -41,7 +41,7 @@ const data = await cache.get({ fileNamePrefix: 'myPrefix', fileName: 'myFileName
 const data = await cache.getOrSet({ fileNamePrefix: 'myPrefix', fileName: 'myFileName', payload: myPayload, ttl: 3600 });
 
 // Flush cache by passing regex
-await cache.flushByRegex('myString'); // Flush cache by regex match
+await cache.flushByRegex('myString', 'myString2'); // Flush cache by regex match (single or multiple same matches)
 
 // Flush whole cache
 await cache.flushAll();

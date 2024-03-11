@@ -147,7 +147,7 @@ describe('FileSysCache', () => {
       // Delete cache folder after each test
       rmSync(basePath, { recursive: true, force: true })
     })
-    it('before invalidate', async () => {
+    it('invalidate files', async () => {
       const cache = new FileSysCache({ basePath, defaultTTL: 1 })
 
       await cache.getOrSet({ fileNamePrefix: filePrefix, fileName, payload })
@@ -162,10 +162,6 @@ describe('FileSysCache', () => {
         filesCount = 0
       }
       expect(filesCount).toBe(1)
-    })
-    it('invalidate', async () => {
-      const cache = new FileSysCache({ basePath })
-      let filesCount
       try {
         // Read the contents of the folder
         const files = readdirSync(basePath)
@@ -176,9 +172,6 @@ describe('FileSysCache', () => {
       }
       expect(filesCount).toBe(1)
       await cache.invalidate()
-    })
-    it('after invalidate', async () => {
-      let filesCount
       try {
         // Read the contents of the folder
         const files = readdirSync(basePath)
@@ -188,6 +181,44 @@ describe('FileSysCache', () => {
         filesCount = 0
       }
       expect(filesCount).toBe(0)
+    })
+  })
+
+  describe('flushByRegex', () => {
+    const basePath = './.unit-file-sys-cache--flushByRegex'
+    afterAll(() => {
+      // Delete cache folder after each test
+      rmSync(basePath, { recursive: true, force: true })
+    })
+    it('flush files', async () => {
+      const cache = new FileSysCache({ basePath })
+
+      await cache.set({ fileNamePrefix: 'org_google id_123', fileName: 'file-1', payload })
+      await cache.set({ fileNamePrefix: 'org_google id_345', fileName: 'file-2', payload })
+      await cache.set({ fileNamePrefix: 'org_google id_678', fileName: 'file-3', payload })
+      await cache.set({ fileNamePrefix: 'org_amazon id_123', fileName: 'file-4', payload })
+      await cache.set({ fileNamePrefix: 'org_amazon id_456', fileName: 'file-5', payload })
+      await cache.flushByRegex('google', '678')
+      let filesCount
+      try {
+        // Read the contents of the folder
+        const files = readdirSync(basePath)
+        // Return the number of files
+        filesCount = files.length
+      } catch (_) {
+        filesCount = 0
+      }
+      expect(filesCount).toBe(4)
+      await cache.flushByRegex('amazon')
+      try {
+        // Read the contents of the folder
+        const files = readdirSync(basePath)
+        // Return the number of files
+        filesCount = files.length
+      } catch (_) {
+        filesCount = 0
+      }
+      expect(filesCount).toBe(2)
     })
   })
 
