@@ -46,7 +46,7 @@ export const monitoringDefaults: IMonitoring = {
   }
 }
 
-export let monitoring: typeof monitoringDefaults = JSON.parse(JSON.stringify(monitoringDefaults))
+export let monitoring: IMonitoring = JSON.parse(JSON.stringify(monitoringDefaults))
 
 export default class FileSysCacheMonitoring {
   get (): IMonitoring {
