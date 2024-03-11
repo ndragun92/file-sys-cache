@@ -1,6 +1,6 @@
 {
   "name": "file-sys-cache",
-  "version": "0.0.0-dev",
+  "version": "1.0.0",
   "description": "A Node.js package providing efficient caching using the file system for storage.",
   "type": "module",
   "main": "./dist/file-sys-cache.cjs",
