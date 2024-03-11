@@ -84,7 +84,7 @@ describe('FileSysCacheMonitoring', () => {
 
     verifyProperties(data, ['count', 'logs'])
     verifyProperties(logEntry, ['id', 'bytes', 'megabytes', 'storedFilesCount', 'date', 'count'])
-    verifyProperties(successCounts, ['set', 'get', 'getOrSet', 'invalidate', 'validateFile', 'flushByRegex', 'flushAll'])
-    verifyProperties(errorCounts, ['set', 'get', 'getOrSet', 'invalidate', 'validateFile', 'flushByRegex', 'flushAll'])
+    verifyProperties(successCounts, ['set', 'get', 'invalidate', 'validateFile', 'flushByRegex', 'flushAll'])
+    verifyProperties(errorCounts, ['set', 'get', 'invalidate', 'validateFile', 'flushByRegex', 'flushAll'])
   })
 })

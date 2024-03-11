@@ -119,32 +119,6 @@ export default class FileSysCache {
     }
   }
 
-  async getOrSet ({ fileName = '', key, payload, ttl = this.defaultTTL }: ISetArguments): Promise<unknown> {
-    if (this.enableMonitoring) {
-      monitoring.count.success.getOrSet++
-    }
-    try {
-      const CACHED_DATA = await this.get({ fileName, key })
-      if (this.debug) {
-        console.info('Return: cached')
-      }
-      return CACHED_DATA
-    } catch (_) {
-      try {
-        if (this.debug) {
-          console.info('Return: fresh')
-        }
-        await this.set({ fileName, key, payload, ttl })
-        return payload
-      } catch (_) {
-        if (this.debug) {
-          console.info('Return: fresh')
-        }
-        return payload
-      }
-    }
-  }
-
   async invalidate (): Promise<void> {
     try {
       const files = readdirSync(this.basePath)

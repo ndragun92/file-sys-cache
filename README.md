@@ -39,9 +39,6 @@ await cache.set({ fileName: 'myFileName', key: 'myUniqueKey', payload: myPayload
 // Retrieve cached data by file name prefix and file name
 const data = await cache.get({ fileName: 'myFileName', key: 'myUniqueKey' });
 
-// Caching fresh data if not inside cache and returning original fresh payload, otherwise if it is inside the cache then it returns cached data
-const data = await cache.getOrSet({ fileName: 'myFileName', key: 'myUniqueKey', payload: myPayload, ttl: 3600 });
-
 // Flush cache by passing regex
 await cache.flushByRegex('myString', 'myString2'); // Flush cache by regex match (single or multiple same matches)
 

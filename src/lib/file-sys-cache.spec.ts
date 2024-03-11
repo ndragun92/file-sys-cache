@@ -63,8 +63,8 @@ describe('FileSysCache', () => {
       })
       it('should auto invalidate file after 25 tries', async () => {
         const cache = new FileSysCache({ basePath, autoInvalidate: true })
-        await cache.getOrSet({ fileName, key, payload })
-        await cache.getOrSet({ fileName: 'random-file-name-1', key: 'random-key-1', payload, ttl: 1 })
+        await cache.set({ fileName, key, payload })
+        await cache.set({ fileName: 'random-file-name-1', key: 'random-key-1', payload, ttl: 1 })
         await new Promise(resolve => setTimeout(resolve, 1250))
         let filesCount
         try {
@@ -78,8 +78,8 @@ describe('FileSysCache', () => {
         expect(filesCount).toBe(2)
         await new Promise(resolve => setTimeout(resolve, 1250))
         // Since we already made 2 calls, we have to check if it will invalidate after next 23 calls
-        for (let i = 0; i < 23; i++) {
-          await cache.getOrSet({ fileName, key, payload })
+        for (let i = 0; i < 25; i++) {
+          await cache.get({ fileName, key })
         }
         await new Promise(resolve => setTimeout(resolve, 1250))
         try {
@@ -145,44 +145,6 @@ describe('FileSysCache', () => {
     })
   })
 
-  describe('getOrSet', () => {
-    const basePath = './.unit-file-sys-cache--getOrSet'
-    afterAll(() => {
-      // Delete cache folder after each test
-      rmSync(basePath, { recursive: true, force: true })
-    })
-    it('return fresh data', async () => {
-      console.error = jest.fn()
-      console.info = jest.fn()
-      const cache = new FileSysCache({ basePath, defaultTTL: 3600, debug: true })
-
-      const freshData = await cache.getOrSet({ fileName, key, payload })
-
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error
-      expect(console.error.mock.calls[0][0]).toContain('Error during file retrieval:')
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error
-      expect(console.info.mock.calls[0][0]).toContain('Return: fresh')
-      expect(freshData).toEqual(payload)
-    })
-    it('return cached data', async () => {
-      console.error = jest.fn()
-      console.info = jest.fn()
-      const cache = new FileSysCache({ basePath, defaultTTL: 3600, debug: true })
-
-      const cachedData = await cache.getOrSet({ fileName, key, payload })
-
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error
-      expect(console.error.mock.calls).toHaveLength(0)
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error
-      expect(console.info.mock.calls[0][0]).toContain('Return: cached')
-      expect(cachedData).toEqual(payload)
-    })
-  })
-
   describe('invalidate', () => {
     const basePath = './.unit-file-sys-cache--invalidate'
     afterAll(() => {
@@ -192,7 +154,7 @@ describe('FileSysCache', () => {
     it('invalidate files', async () => {
       const cache = new FileSysCache({ basePath, defaultTTL: 1 })
 
-      await cache.getOrSet({ fileName, key, payload })
+      await cache.set({ fileName, key, payload })
       await new Promise(resolve => setTimeout(resolve, 2000))
       let filesCount
       try {
