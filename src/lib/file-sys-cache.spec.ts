@@ -37,21 +37,59 @@ describe('FileSysCache', () => {
     })
   })
 
-  describe('option debug', () => {
-    const basePath = './.unit-file-sys-cache--option'
-    afterEach(() => {
-      // Delete cache folder after each test
-      rmSync(basePath, { recursive: true, force: true })
+  describe('option', () => {
+    describe('debug', () => {
+      const basePath = './.unit-file-sys-cache--option-debug'
+      afterEach(() => {
+        // Delete cache folder after each test
+        rmSync(basePath, { recursive: true, force: true })
+      })
+      it('should create cached file', async () => {
+        console.info = jest.fn()
+        const cache = new FileSysCache({ basePath, debug: true })
+
+        await cache.set({ fileNamePrefix: filePrefix, fileName, payload })
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        expect(console.info.mock.calls[0][0]).toContain(`Data stored successfully to ${basePath}/${filePrefix} hash_`)
+      })
     })
-    it('should create cached file', async () => {
-      console.info = jest.fn()
-      const cache = new FileSysCache({ basePath, debug: true })
-
-      await cache.set({ fileNamePrefix: filePrefix, fileName, payload })
-
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error
-      expect(console.info.mock.calls[0][0]).toContain(`Data stored successfully to ${basePath}/${filePrefix} hash_`)
+    describe('autoInvalidate', () => {
+      const basePath = './.unit-file-sys-cache--option-autoInvalidate'
+      afterAll(() => {
+        // Delete cache folder after each test
+        rmSync(basePath, { recursive: true, force: true })
+      })
+      it('should auto invalidate file after 25 tries', async () => {
+        const cache = new FileSysCache({ basePath, defaultTTL: 1, autoInvalidate: true })
+        await cache.getOrSet({ fileNamePrefix: 'my-custom-prefix', fileName, payload })
+        await new Promise(resolve => setTimeout(resolve, 1250))
+        let filesCount
+        try {
+          // Read the contents of the folder
+          const files = readdirSync(basePath)
+          // Return the number of files
+          filesCount = files.length
+        } catch (_) {
+          filesCount = 0
+        }
+        expect(filesCount).toBe(1)
+        await new Promise(resolve => setTimeout(resolve, 1250))
+        for (let i = 0; i < 24; i++) {
+          await cache.getOrSet({ fileNamePrefix: filePrefix, fileName, payload })
+        }
+        await new Promise(resolve => setTimeout(resolve, 1250))
+        try {
+          // Read the contents of the folder
+          const files = readdirSync(basePath)
+          // Return the number of files
+          filesCount = files.length
+        } catch (_) {
+          filesCount = 0
+        }
+        expect(filesCount).toBe(1)
+      })
     })
   })
 

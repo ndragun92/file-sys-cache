@@ -3,6 +3,11 @@ import { promises as fsPromises, readdirSync, rmSync, unlinkSync } from 'node:fs
 import { type IArguments, type IGetArguments, type IOptions, type ISetArguments } from '../types/index.type.ts'
 import { formatFileName } from '../utils/format.util.ts'
 
+const autoInvalidate = {
+  after: 25,
+  count: 0
+}
+
 export default class FileSysCache {
   basePath: string
   defaultTTL: number
@@ -54,7 +59,11 @@ export default class FileSysCache {
 
   async get ({ fileNamePrefix = '', fileName }: IGetArguments): Promise<string> {
     if (this.autoInvalidate) {
-      this.invalidate()
+      autoInvalidate.count++
+      if (autoInvalidate.count >= autoInvalidate.after) {
+        this.invalidate()
+        autoInvalidate.count = 0
+      }
     }
 
     const FILE_NAME = formatFileName({ fileNamePrefix, fileName })
