@@ -117,10 +117,9 @@ export default class FileSysCache {
   }
 
   private async validateFile (fileName: IArguments['fileName']): Promise<{ ttl: number, expiresIn: number | null } | undefined> {
-    const FILE_NAME = fileName
     try {
       // Construct the file path within the cache folder
-      const filePath = path.resolve(this.basePath, `${FILE_NAME}`)
+      const filePath = path.resolve(this.basePath, `${fileName}`)
 
       // Check if the file exists
       await fsPromises.stat(filePath)
