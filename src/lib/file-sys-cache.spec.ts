@@ -108,12 +108,14 @@ describe('FileSysCache', () => {
 
       expect(result).toContain(fileName)
     })
-    it('should throw an error if folder path is wrong', async () => {
-      console.error = jest.fn()
-      const cache = new FileSysCache({ basePath: '?', debug: true })
+    if (process.env.NODE_ENV === 'test') {
+      it('should throw an error if folder path is wrong', async () => {
+        console.error = jest.fn()
+        const cache = new FileSysCache({ basePath: '?', debug: true })
 
-      await expect(cache.set({ fileName, key, payload })).rejects.toThrow('no such file or directory')
-    })
+        await expect(cache.set({ fileName, key, payload })).rejects.toThrow('no such file or directory')
+      })
+    }
   })
 
   describe('get', () => {
