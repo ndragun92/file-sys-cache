@@ -10,6 +10,7 @@ File-Sys-Cache is an npm package that provides a simple and efficient system fil
 - **Flush Cache by Regex**: Flush cache entries that match a given regular expression.
 - **Flush Whole Cache**: Clear the entire cache, removing all stored entries.
 - **Monitoring**: Monitor cache usage and performance statistics, including invalidated files count, logs over time, size over time, and request count.
+- **TypeScript**: Full TypeScript support
 
 ## Installation
 
