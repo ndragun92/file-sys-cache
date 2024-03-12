@@ -1,7 +1,6 @@
 interface ICountAttributes {
   set: number
   get: number
-  getOrSet: number
   invalidate: number
   validateFile: number
   flushByRegex: number
@@ -31,7 +30,6 @@ interface IMonitoring {
 const createDefaultCountAttributes = (): ICountAttributes => ({
   set: 0,
   get: 0,
-  getOrSet: 0,
   invalidate: 0,
   validateFile: 0,
   flushByRegex: 0,

@@ -27,9 +27,9 @@ import { FileSysCache } from 'file-sys-cache'
 const cache = new FileSysCache({
     basePath: './.file-sys-cache', // Directory where cache will be stored
     defaultTTL: 60, // 60 seconds expiration time
-    hash: 'sha256', // Hashing alorithm
+    hash: 'sha256', // Hashing algorithm
     debug: false, // Enabled debug mode
-    autoInvalidate: false ,// Auto invalidate files from file-system and delete expired files automatically without need of triggering .invalidate()
+    autoInvalidate: false, // Auto invalidate files from file-system and delete expired files automatically without need of triggering .invalidate()
     enableMonitoring: false // Enabled monitoring which exposes cache.monitoring.get(), cache.monitoring.reset()
 });
 
@@ -38,9 +38,6 @@ await cache.set({ fileName: 'myFileName', key: 'myUniqueKey', payload: myPayload
 
 // Retrieve cached data by file name prefix and file name
 const data = await cache.get({ fileName: 'myFileName', key: 'myUniqueKey' });
-
-// Caching fresh data if not inside cache and returning original fresh payload, otherwise if it is inside the cache then it returns cached data
-const data = await cache.getOrSet({ fileName: 'myFileName', key: 'myUniqueKey', payload: myPayload, ttl: 3600 });
 
 // Flush cache by passing regex
 await cache.flushByRegex('myString', 'myString2'); // Flush cache by regex match (single or multiple same matches)
