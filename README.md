@@ -27,9 +27,9 @@ import { FileSysCache } from 'file-sys-cache'
 const cache = new FileSysCache({
     basePath: './.file-sys-cache', // Directory where cache will be stored
     defaultTTL: 60, // 60 seconds expiration time
-    hash: 'sha256', // Hashing alorithm
+    hash: 'sha256', // Hashing algorithm
     debug: false, // Enabled debug mode
-    autoInvalidate: false ,// Auto invalidate files from file-system and delete expired files automatically without need of triggering .invalidate()
+    autoInvalidate: false, // Auto invalidate files from file-system and delete expired files automatically without need of triggering .invalidate()
     enableMonitoring: false // Enabled monitoring which exposes cache.monitoring.get(), cache.monitoring.reset()
 });
 
