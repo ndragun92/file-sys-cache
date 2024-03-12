@@ -5,7 +5,7 @@ export default defineAppConfig({
     description: 'A Node.js package providing efficient caching using the file system for storage',
     image: 'https://ndragun92.github.io/file-sys-cache/cover.jpg',
     socials: {
-      github: 'ndragun92/file-sys-cache',
+      github: 'ndragun92/file-sys-cache'
     },
     aside: {
       level: 1,
