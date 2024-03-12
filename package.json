@@ -58,7 +58,7 @@
   "bugs": {
     "url": "https://github.com/ndragun92/file-sys-cache/issues"
   },
-  "homepage": "https://github.com/ndragun92/file-sys-cache#readme",
+  "homepage": "https://ndragun92.github.io/file-sys-cache",
   "publishConfig": {
     "@ndragun92:registry": "https://registry.npmjs.org/",
     "access": "public"

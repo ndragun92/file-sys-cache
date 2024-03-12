@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "nuxi dev",
-    "build": "nuxi build",
+    "build": "nuxi build --preset github_pages",
+    "deploy": "npx gh-pages --dotfiles -d .output/public",
     "generate": "nuxi generate",
     "preview": "nuxi preview",
     "lint": "eslint ."
