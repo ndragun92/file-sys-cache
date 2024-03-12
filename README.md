@@ -46,7 +46,7 @@ await cache.flushByRegex('myString', 'myString2'); // Flush cache by regex match
 await cache.flushAll();
 ```
 
-For more detailed usage examples and API documentation, please refer to the [Documentation]() section.
+For more detailed usage examples and API documentation, please refer to the [Documentation](https://ndragun92.github.io/file-sys-cache) section.
 
 ## Contributing
 Contributions are welcome! Please see the [Contributing Guidelines](https://github.com/ndragun92/file-sys-cache/blob/main/CONTRIBUTING.md) for more information.
