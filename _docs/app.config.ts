@@ -3,8 +3,7 @@ export default defineAppConfig({
   docus: {
     title: 'File Sys Cache',
     description: 'A Node.js package providing efficient caching using the file system for storage',
-    // TODO: Replace
-    image: '/cover.png',
+    image: 'https://ndragun92.github.io/file-sys-cache/cover.jpg',
     socials: {
       github: 'ndragun92/file-sys-cache',
     },
