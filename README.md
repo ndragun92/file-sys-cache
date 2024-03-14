@@ -40,6 +40,9 @@ await cache.set({ fileName: 'myFileName', key: 'myUniqueKey', payload: myPayload
 // Retrieve cached data by file name prefix and file name
 const data = await cache.get({ fileName: 'myFileName', key: 'myUniqueKey' });
 
+// Retrieve current list of files inside cache
+const data = await cache.files();
+
 // Flush cache by passing regex
 await cache.flushByRegex('myString', 'myString2'); // Flush cache by regex match (single or multiple same matches)
 

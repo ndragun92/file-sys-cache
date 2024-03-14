@@ -145,6 +145,35 @@ describe('FileSysCache', () => {
     })
   })
 
+  describe('files', () => {
+    const basePath = './.unit-file-sys-cache--files'
+    afterEach(() => {
+      // Delete cache folder after each test
+      rmSync(basePath, { recursive: true, force: true })
+    })
+    it('should return files', async () => {
+      const cache = new FileSysCache({ basePath })
+
+      await cache.set({ fileName: '1', key, payload })
+      await cache.set({ fileName: '2', key, payload })
+      const result = await cache.files()
+      const entry = result[0]
+      expect(Array.isArray(result)).toBeTruthy()
+      expect(entry.name).toBeDefined()
+      expect(entry.name).toContain('1 hash_')
+      expect(typeof entry.size).toBe('object')
+      expect(entry.size).toBeDefined()
+      expect(entry.size.bytes).toBeDefined()
+      expect(entry.size.bytes).toBe(75)
+      expect(entry.size.megabytes).toBeDefined()
+      expect(entry.size.megabytes).toBe(0.00007152557373046875)
+
+      expect(entry.ttl).toBe(60)
+      expect(entry.expiration).toBeDefined()
+      expect(entry.expires_in).toBeDefined()
+    })
+  })
+
   describe('invalidate', () => {
     const basePath = './.unit-file-sys-cache--invalidate'
     afterAll(() => {

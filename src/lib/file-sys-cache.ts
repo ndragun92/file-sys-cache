@@ -119,12 +119,55 @@ export default class FileSysCache {
     }
   }
 
+  async files (): Promise<Array<{
+    name: string
+    size: {
+      bytes: number
+      megabytes: number
+    }
+    ttl: number
+    expiration: number
+    expires_in: number | null
+  }>> {
+    const FILES: Array<{
+      name: string
+      size: {
+        bytes: number
+        megabytes: number
+      }
+      ttl: number
+      expiration: number
+      expires_in: number | null
+    }> = []
+    try {
+      const files = readdirSync(this.basePath)
+      for (const file of files) {
+        const stats = statSync(`${this.basePath}/${file}`)
+        try {
+          const { ttl, expiration, expiresIn } = (await this.validateFile(file)) || { ttl: 0, expiration: 0, expiresIn: 0 }
+          FILES.push({
+            name: file,
+            size: {
+              bytes: stats.size,
+              megabytes: stats.size / (1024 * 1024)
+            },
+            ttl,
+            expiration,
+            expires_in: expiresIn
+          })
+        } catch (_) {}
+      }
+    } catch (_) {
+    }
+    return FILES
+  }
+
   async invalidate (): Promise<void> {
     try {
       const files = readdirSync(this.basePath)
       for (const file of files) {
         try {
-          const { expiresIn } = (await this.validateFile(file)) || { ttl: 0, expiresIn: 0 }
+          const { expiresIn } = (await this.validateFile(file)) || { expiresIn: 0 }
           const invalid = (expiresIn || 0) <= 0
           if (invalid) {
             unlinkSync(`${this.basePath}/${file}`)
@@ -142,7 +185,7 @@ export default class FileSysCache {
     }
   }
 
-  private async validateFile (key: IArguments['key']): Promise<{ ttl: number, expiresIn: number | null } | undefined> {
+  private async validateFile (key: IArguments['key']): Promise<{ ttl: number, expiration: number, expiresIn: number | null } | undefined> {
     try {
       // Construct the file path within the cache folder
       const filePath = path.resolve(this.basePath, `${key}`)
@@ -163,6 +206,7 @@ export default class FileSysCache {
       // Return the payload data and TTL
       return {
         ttl: data.ttl,
+        expiration: data.expiration,
         expiresIn
       }
     } catch (error: any) {
